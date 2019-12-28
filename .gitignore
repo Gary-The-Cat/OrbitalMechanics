@@ -1,0 +1,17 @@
+GeneralGA/bin/
+GeneralGA/obj/
+NeuralNetwork/.vs/
+Simulation/.vs/
+.vs/
+Simulation/obj/
+Simulation/bin/
+packages/
+NeuralNetwork/bin/
+NeuralNetwork/obj/
+Simulation/Generations/
+Resources/Individuals/
+Resources/Captures/
+Resources/Generations/
+Data/
+FFMPEG/
+SimData/Luke/
