@@ -36,7 +36,7 @@ namespace CarSimulation.ExtensionMethods
         //returns the length of the vector
         public static float Magnitude(this Vector2f v, Vector2f v2)
         {
-            return MathExtensions.Sqrt(v.X * v2.X + v.Y * v2.Y);
+            return MathExtensions.Sqrt(Math.Pow(v.X - v2.X, 2) + Math.Pow(v.Y - v2.Y, 2));
         }
 
         //returns the squared length of the vector (thereby avoiding the sqrt)

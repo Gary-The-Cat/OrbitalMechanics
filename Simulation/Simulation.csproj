@@ -84,6 +84,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http.Extensions, Version=2.2.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net45\System.Net.Http.Extensions.dll</HintPath>
@@ -111,12 +112,21 @@
     <Compile Include="CollisionData\Shapes\Rectangle.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="CrateTools\CrateManager.cs" />
+    <Compile Include="ExtensionMethods\ColourExtensions.cs" />
     <Compile Include="ExtensionMethods\RenderWindowExceptions.cs" />
     <Compile Include="ExtensionMethods\Vector2fExtensions.cs" />
     <Compile Include="ExtensionMethods\MathExtensions.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="ImageEffects\GaussianBlur.cs" />
     <Compile Include="Maths\MathHelper.cs" />
+    <Compile Include="Planets\Goal.cs" />
+    <Compile Include="Planets\PerlinNoise.cs" />
+    <Compile Include="Planets\Planet.cs" />
+    <Compile Include="Planets\PlanetFactory.cs" />
+    <Compile Include="Planets\PlanetTypes.cs" />
+    <Compile Include="Planets\TextureFactory.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Projectiles\Projectile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Screens\GameScreen.cs" />
     <Compile Include="Screens\MainGameScreen.cs" />
