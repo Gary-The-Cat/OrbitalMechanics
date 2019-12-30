@@ -27,6 +27,7 @@ namespace Arkanoid_SFML.Screens
         public RectangleShape background;
 
         private bool isThrowing;
+        private bool isLaunching;
 
         private Vector2f? throwAnchor;
 
@@ -93,12 +94,13 @@ namespace Arkanoid_SFML.Screens
         private void MouseReleased(object sender, MouseButtonEventArgs e)
         {
             isThrowing = false;
+            isLaunching = true;
             LaunchProjectile();
         }
 
         private void LaunchProjectile()
         {
-            var delta = throwAnchor - GetMousePosition();
+            var delta = throwAnchor - projectile.ProjectileBody.Position;
             projectile.Velocity = delta.Value;
         }
 
@@ -127,28 +129,51 @@ namespace Arkanoid_SFML.Screens
         /// <param name="deltaT">The amount of time that has passed since the last frame was drawn.</param>
         public override void Update(float deltaT)
         {
+            goal.Update(deltaT);
+
             if (isThrowing)
             {
-                projectile.ProjectileBody.Position = GetMousePosition();
+                projectile.ProjectileBody.Position = SetProjectilePosition();
                 elastic[1] = new Vertex(projectile.ProjectileBody.Position, Color.White);
                 SetProjections();
             }
-
-            if (projectile.Velocity != null)
+            else
             {
-                projectile.Velocity += GetNewVelocity(projectile.ProjectileBody.Position, projectile.Mass, deltaT);
-                projectile.ProjectileBody.Position += projectile.Velocity.Value * deltaT;
+                if (isLaunching)
+                {
+                    projectile.ProjectileBody.Position += projectile.Velocity.Value * deltaT;
+                    if(projectile.ProjectileBody.Position.Magnitude(throwAnchor.Value) < 5)
+                    {
+                        isLaunching = false;
+                    }
+                }
+                else if (projectile.Velocity != null)
+                {
+                    projectile.Velocity += GetNewVelocity(projectile.ProjectileBody.Position, projectile.Mass, deltaT);
+                    projectile.ProjectileBody.Position += projectile.Velocity.Value * deltaT;
+                }
+
+                CheckGoal();
+
+                if (!CheckPlanetCollisions(projectile))
+                {
+                    projectile.Velocity = new Vector2f(0, 0);
+                    projectile.ProjectileBody.Position = new Vector2f(-50, -50);
+                }
+            }
+        }
+
+        private Vector2f SetProjectilePosition()
+        {
+            var mousePosition = GetMousePosition();
+            var direction = (mousePosition - throwAnchor.Value);
+
+            if(direction.Magnitude() > 800)
+            {
+                return throwAnchor.Value + direction.Normalize() * 800;
             }
 
-            goal.Update(deltaT);
-
-            CheckGoal();
-
-            if (!CheckPlanetCollisions(projectile))
-            {
-                projectile.Velocity = new Vector2f(0, 0);
-                projectile.ProjectileBody.Position = new Vector2f(-50, -50);
-            }
+            return mousePosition;
         }
 
         private bool CheckPlanetCollisions(Projectile projectile)
@@ -180,18 +205,31 @@ namespace Arkanoid_SFML.Screens
             { Velocity = projectile.Velocity };
 
 
-            var delta = throwAnchor - GetMousePosition();
+            var delta = throwAnchor - projectile.ProjectileBody.Position;
             projectileClone.Velocity = delta.Value;
+            bool launching = true;
 
             for (int i = 0; i < 8; i++)
             {
                 float time = 0;
                 float timeStep = 1 / 60f;
                 while (time < 0.4)
-                {
-                    var newVelocity = GetNewVelocity(projectileClone.ProjectileBody.Position, projectileClone.Mass, timeStep);
-                    projectileClone.Velocity += newVelocity;
-                    projectileClone.ProjectileBody.Position += projectileClone.Velocity.Value * timeStep;
+                { 
+                    if (launching)
+                    {
+                        projectileClone.ProjectileBody.Position += projectileClone.Velocity.Value * timeStep;
+                        if (projectileClone.ProjectileBody.Position.Magnitude(throwAnchor.Value) < 5)
+                        {
+                            launching = false;
+                        }
+                    }
+                    else
+                    {
+                        var newVelocity = GetNewVelocity(projectileClone.ProjectileBody.Position, projectileClone.Mass, timeStep);
+                        projectileClone.Velocity += newVelocity;
+                        projectileClone.ProjectileBody.Position += projectileClone.Velocity.Value * timeStep;
+                    }
+
                     time += timeStep;
 
                     if (!CheckPlanetCollisions(projectileClone))
@@ -282,22 +320,23 @@ namespace Arkanoid_SFML.Screens
                 texture.Draw(projectile.ProjectileBody);
                 if (isThrowing)
                 {
+                    var outerSize = throwAnchor.Value.Magnitude(projectile.ProjectileBody.Position) / 8;
+                    outerSize = outerSize == 0 ? 1 : outerSize;
+                    var colour = new Color(255, (byte)(255 - outerSize), (byte)(255 - outerSize));
+
                     var anchorCentre = new CircleShape(10)
                     {
                         Position = throwAnchor.Value,
                         Origin = new Vector2f(10, 10),
-                        FillColor = Color.White
+                        FillColor = colour
                     };
 
-                    var outerSize = throwAnchor.Value.Magnitude(GetMousePosition()) / 4;
-                    outerSize = outerSize == 0 ? 1 : outerSize;
-                    var colour = new Color(255, (byte)(255 - outerSize), (byte)(255 - outerSize));
                     var anchorOuter = new CircleShape(outerSize)
                     {
                         Position = throwAnchor.Value,
                         Origin = new Vector2f(outerSize, outerSize),
                         FillColor = Color.Transparent,
-                        OutlineThickness = outerSize / 20,
+                        OutlineThickness = 1,
                         OutlineColor = colour
                     };
 
@@ -310,9 +349,17 @@ namespace Arkanoid_SFML.Screens
             if (isThrowing)
             {
                 int position = 0;
+                byte alpha;
                 foreach(var projection in projections)
                 {
-                    texture.Draw(new CircleShape(10 - position) { Position = projection });
+                    var radius = 10 - position;
+                    alpha = (byte)(255 - (byte)(255 * (position / 8.0)));
+                    texture.Draw(new CircleShape(radius)
+                    {
+                        Position = projection,
+                        Origin = new Vector2f(radius, radius),
+                        FillColor = new Color(255, 255, 255, alpha)
+                    });
                     position++;
                 }
             }
